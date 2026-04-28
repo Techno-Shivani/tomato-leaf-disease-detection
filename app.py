@@ -1,6 +1,6 @@
 import streamlit as st
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
 from PIL import Image
 import requests
 
@@ -14,8 +14,9 @@ def load_model():
         r = requests.get(url)
         with open(model_path, "wb") as f:
             f.write(r.content)
+            
 
-    return tf.keras.models.load_model(model_path)
+   # return tf.keras.models.load_model(model_path)
 
 
 # --------- Load class names ---------
@@ -26,7 +27,7 @@ def load_classes():
     return classes
 
 
-model = load_model()
+# model = load_model()
 class_names = load_classes()
 
 
