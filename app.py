@@ -1,23 +1,7 @@
 import streamlit as st
 import numpy as np
-# import tensorflow as tf
 from PIL import Image
 import requests
-
-# --------- Download model from Google Drive ---------
-@st.cache_resource
-def load_model():
-    url = "https://drive.google.com/uc?id=1xfvLMQcReQBzmYg4KVptdeYnxpXcdbKe"
-    model_path = "model.keras"
-
-    if not tf.io.gfile.exists(model_path):
-        r = requests.get(url)
-        with open(model_path, "wb") as f:
-            f.write(r.content)
-            
-
-   # return tf.keras.models.load_model(model_path)
-
 
 # --------- Load class names ---------
 def load_classes():
@@ -26,10 +10,7 @@ def load_classes():
     classes = r.text.splitlines()
     return classes
 
-
-# model = load_model()
 class_names = load_classes()
-
 
 # --------- UI ---------
 st.title("🌿 Tomato Leaf Disease Detection")
@@ -45,16 +26,19 @@ if uploaded_file:
     img_array = np.array(img)
     img_array = np.expand_dims(img_array, axis=0)
 
-    preds = model.predict(img_array)[0]
-
-    # Confidence smoothing
-    preds = preds ** 0.7
-    preds = preds / np.sum(preds)
-
-    # Top 3
-    top_indices = preds.argsort()[-3:][::-1]
-
+    # TEMP OUTPUT (since TensorFlow removed)
+    st.success("Image uploaded successfully ✅")
     st.subheader("🔍 Prediction")
 
-    for i in top_indices:
-        st.write(f"{class_names[i]} : {preds[i]*100:.2f}%")
+    st.write("⚠️ Model temporarily disabled due to deployment issue.")
+    st.write("Showing sample output 👇")
+
+    # Fake predictions (demo purpose)
+    sample_results = [
+        ("Healthy", 92.5),
+        ("Leaf Mold", 5.2),
+        ("Early Blight", 2.3)
+    ]
+
+    for name, prob in sample_results:
+        st.write(f"{name} : {prob}%")
