@@ -4,18 +4,12 @@ from PIL import Image
 import requests
 import base64
 import matplotlib.pyplot as plt
-import tensorflow as tf
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(layout="wide", page_title="Tomato Leaf Disease Detection")
+# ---------------- BACKGROUND + UI ----------------
 
-# ---------------- BACKGROUND ----------------
 def get_base64(file_path):
-    try:
-        with open(file_path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except:
-        return ""
+    with open(file_path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
 bg = get_base64("assets/bg-tomato-leaf.jpg")
 
@@ -50,32 +44,17 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- LOAD MODEL ----------------
-@st.cache_resource
-def load_model():
-    try:
-        return tf.keras.models.load_model("model.h5")
-    except:
-        return None
-
-model = load_model()
-
 # ---------------- LOAD CLASSES ----------------
+
 def load_classes():
-    try:
-        url = "https://drive.google.com/uc?id=1tTb6mwl8B0WA701qRN0FZ4kzK-_F5eOZ"
-        r = requests.get(url)
-        return r.text.splitlines()
-    except:
-        return [
-            "Healthy",
-            "Leaf Mold",
-            "Early Blight"
-        ]
+    url = "https://drive.google.com/uc?id=1tTb6mwl8B0WA701qRN0FZ4kzK-_F5eOZ"
+    r = requests.get(url)
+    return r.text.splitlines()
 
 class_names = load_classes()
 
 # ---------------- MAIN UI ----------------
+
 st.markdown('<div class="main-container">', unsafe_allow_html=True)
 
 st.title("🌿 Tomato Leaf Disease Detection")
@@ -85,31 +64,13 @@ uploaded_file = st.file_uploader("Upload a leaf image", type=["jpg", "png", "jpe
 if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
 
-    # ---------- PREPROCESS ----------
-    img = image.resize((224,224))
-    arr = np.array(img)/255.0
-    arr = np.expand_dims(arr, axis=0)
-
-    # ---------- PREDICTION ----------
-    if model:
-        preds = model.predict(arr)[0]
-        label = class_names[np.argmax(preds)]
-        confidence = np.max(preds)
-    else:
-        # DEMO MODE
-        label = "Healthy"
-        confidence = 0.925
-
-        preds = np.array([0.925, 0.052, 0.023])
-        class_names = ["Healthy", "Leaf Mold", "Early Blight"]
-
-    # ---------- LAYOUT ----------
+    # Layout
     col1, col2 = st.columns([1,1])
 
     # -------- LEFT (IMAGE) --------
     with col1:
         st.subheader("📸 Uploaded Image")
-        st.image(image, use_container_width=True)
+        st.image(image, use_column_width=True)
 
     # -------- RIGHT (RESULT) --------
     with col2:
@@ -117,25 +78,38 @@ if uploaded_file:
 
         st.markdown('<div class="result-box">', unsafe_allow_html=True)
 
-        st.success(f"{label}")
-        st.progress(int(confidence*100))
-        st.write(f"Confidence: {confidence*100:.2f}%")
+        st.success("🌿 Healthy (Demo Result)")
+        st.progress(0.92)
 
-        if not model:
-            st.warning("⚠️ Demo mode (Model not loaded)")
+        st.write("⚠️ Model temporarily disabled (Demo mode)")
+
+        sample_results = [
+            ("Healthy", 92.5),
+            ("Leaf Mold", 5.2),
+            ("Early Blight", 2.3)
+        ]
+
+        labels = []
+        values = []
+
+        for name, prob in sample_results:
+            st.write(f"{name} : {prob}%")
+            labels.append(name)
+            values.append(prob)
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # -------- GRAPH (FIXED SIZE) --------
+    # -------- GRAPH --------
     st.subheader("📊 Prediction Distribution")
 
-    fig, ax = plt.subplots(figsize=(6,6))
-    ax.pie(preds, labels=class_names, autopct='%1.1f%%')
+    fig, ax = plt.subplots()
+    ax.pie(values, labels=labels, autopct='%1.1f%%')
     ax.axis('equal')
 
     st.pyplot(fig)
 
 # ---------------- FOOTER ----------------
+
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown(
