@@ -1,6 +1,6 @@
 import streamlit as st
 import tensorflow as tf
-import keras
+from tensorflow import keras
 import numpy as np
 from PIL import Image
 from tensorflow.keras.applications.efficientnet import preprocess_input
@@ -20,15 +20,6 @@ if not os.path.exists("best_model.keras"):
 if not os.path.exists("class_names.txt"):
     gdown.download(CLASS_URL, "class_names.txt", quiet=False)
 
-# ---------------- LOAD MODEL ----------------
-
-model = keras.models.load_model("best_model.keras", compile=False)
-
-# ---------------- LOAD CLASS NAMES ----------------
-
-with open("class_names.txt") as f:
-    class_names = [line.strip() for line in f]
-
 # ---------------- PAGE CONFIG ----------------
 
 st.set_page_config(
@@ -36,6 +27,24 @@ st.set_page_config(
     page_icon="🍅",
     layout="centered"
 )
+
+# ---------------- LOAD MODEL ----------------
+
+@st.cache_resource
+def load_my_model():
+    model = keras.models.load_model(
+        "best_model.keras",
+        compile=False,
+        safe_mode=False
+    )
+    return model
+
+model = load_my_model()
+
+# ---------------- LOAD CLASS NAMES ----------------
+
+with open("class_names.txt") as f:
+    class_names = [line.strip() for line in f]
 
 # ---------------- UI ----------------
 
@@ -50,8 +59,7 @@ st.markdown(
 
 st.write("Upload a tomato leaf image to detect possible diseases using Deep Learning.")
 
-# ---------------- IMAGE UPLOAD ----------------
-
+# Upload image
 uploaded_file = st.file_uploader(
     "Upload Tomato Leaf Image",
     type=["jpg", "jpeg", "png"]
@@ -66,10 +74,10 @@ if uploaded_file is not None:
     # Resize image
     image = image.resize((224, 224))
 
-    # Convert to numpy array
+    # Convert to array
     img_array = np.array(image)
 
-    # Expand dimensions
+    # Add batch dimension
     img_array = np.expand_dims(img_array, axis=0)
 
     # Preprocess image
@@ -88,9 +96,10 @@ if uploaded_file is not None:
     # Prediction label
     prediction = class_names[pred_index]
 
-    # Confidence score
+    # Confidence
     confidence = preds[pred_index] * 100
 
+    # Show result
     st.success(f"Prediction: {prediction}")
 
     st.info(f"Confidence: {confidence:.2f}%")
