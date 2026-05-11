@@ -1,11 +1,22 @@
 import streamlit as st
 import tensorflow as tf
-from tensorflow import keras
 import numpy as np
 from PIL import Image
 from tensorflow.keras.applications.efficientnet import preprocess_input
-import gdown
-import os
+
+# ---------------- LOAD MODEL ----------------
+
+@st.cache_resource
+def load_model():
+    model = tf.keras.models.load_model("best_model.h5", compile=False)
+    return model
+
+model = load_model()
+
+# ---------------- LOAD CLASS NAMES ----------------
+
+with open("class_names.txt") as f:
+    class_names = [line.strip() for line in f]
 
 # ---------------- PAGE CONFIG ----------------
 
@@ -14,36 +25,6 @@ st.set_page_config(
     page_icon="🍅",
     layout="centered"
 )
-
-# ---------------- DOWNLOAD FILES ----------------
-
-MODEL_URL = "https://drive.google.com/uc?id=1pflxySlxBXUmLVOorwLU93MzJVHM16ub"
-CLASS_URL = "https://drive.google.com/uc?id=1w5zDqF4D6cgdkQnkalcYXRQwdI2JZNDk"
-
-# Download model
-if not os.path.exists("best_model.keras"):
-    gdown.download(MODEL_URL, "best_model.keras", quiet=False)
-
-# Download class names
-if not os.path.exists("class_names.txt"):
-    gdown.download(CLASS_URL, "class_names.txt", quiet=False)
-
-# ---------------- LOAD MODEL ----------------
-
-@st.cache_resource
-def load_my_model():
-    model = keras.models.load_model(
-        "best_model.keras",
-        compile=False
-    )
-    return model
-
-model = load_my_model()
-
-# ---------------- LOAD CLASS NAMES ----------------
-
-with open("class_names.txt") as f:
-    class_names = [line.strip() for line in f]
 
 # ---------------- UI ----------------
 
@@ -58,50 +39,37 @@ st.markdown(
 
 st.write("Upload a tomato leaf image to detect diseases using Deep Learning.")
 
-# ---------------- IMAGE UPLOAD ----------------
+# ---------------- FILE UPLOAD ----------------
 
 uploaded_file = st.file_uploader(
     "Upload Tomato Leaf Image",
     type=["jpg", "jpeg", "png"]
 )
 
+# ---------------- PREDICTION ----------------
+
 if uploaded_file is not None:
 
-    try:
+    image = Image.open(uploaded_file).convert("RGB")
 
-        # Open image
-        image = Image.open(uploaded_file).convert("RGB")
+    st.image(image, caption="Uploaded Image", width=300)
 
-        # Show image
-        st.image(image, caption="Uploaded Image", width=300)
+    image = image.resize((224, 224))
 
-        # Resize image
-        image = image.resize((224, 224))
+    img_array = np.array(image)
 
-        # Convert to array
-        img_array = np.array(image)
+    img_array = np.expand_dims(img_array, axis=0)
 
-        # Add batch dimension
-        img_array = np.expand_dims(img_array, axis=0)
+    img_array = preprocess_input(img_array)
 
-        # Preprocess
-        img_array = preprocess_input(img_array)
+    prediction = model.predict(img_array)
 
-        # Prediction
-        preds = model.predict(img_array)
+    pred_index = np.argmax(prediction)
 
-        # Get highest prediction
-        pred_index = np.argmax(preds[0])
+    confidence = np.max(prediction) * 100
 
-        # Prediction label
-        prediction = class_names[pred_index]
+    result = class_names[pred_index]
 
-        # Confidence
-        confidence = float(np.max(preds[0])) * 100
+    st.success(f"Prediction: {result}")
 
-        # Result
-        st.success(f"Prediction: {prediction}")
-        st.info(f"Confidence: {confidence:.2f}%")
-
-    except Exception as e:
-        st.error(f"Error: {e}")
+    st.info(f"Confidence: {confidence:.2f}%")
