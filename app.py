@@ -21,7 +21,7 @@ if not os.path.exists("class_names.txt"):
 
 # ---------------- LOAD MODEL ----------------
 
-model = tf.keras.models.load_model("best_model.keras")
+model = tf.keras.models.load_model("best_model.keras", compile=False)
 
 # Load class names
 with open("class_names.txt") as f:
