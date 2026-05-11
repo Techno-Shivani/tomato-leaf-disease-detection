@@ -57,29 +57,22 @@ if uploaded_file is not None:
 
     st.image(image, caption="Uploaded Image", use_container_width=True)
 
-    # Resize image
     image = image.resize((224, 224))
 
-    # Convert to numpy array
     img_array = np.array(image)
 
-    # Add batch dimension
     img_array = np.expand_dims(img_array, axis=0)
 
-    # Preprocess image
     img_array = preprocess_input(img_array)
 
-    # Predict
     preds = model.predict(img_array)[0]
 
-    # Get top prediction
     pred_index = np.argmax(preds)
 
     prediction = class_names[pred_index]
 
     confidence = preds[pred_index] * 100
 
-    # Show result
     st.success(f"Prediction: {prediction}")
 
     st.info(f"Confidence: {confidence:.2f}%")
