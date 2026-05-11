@@ -7,7 +7,16 @@ from PIL import Image
 
 st.set_page_config(
     page_title="Tomato Leaf Disease Detection",
+    page_icon="🍅",
     layout="centered"
+)
+
+# ---------------- TITLE ----------------
+
+st.title("🍅 Tomato Leaf Disease Detection")
+
+st.write(
+    "Upload a tomato leaf image to detect possible diseases using Deep Learning."
 )
 
 # ---------------- LOAD MODEL ----------------
@@ -27,21 +36,21 @@ model = load_model()
 with open("class_names.txt", "r") as f:
     class_names = [line.strip() for line in f.readlines()]
 
-# ---------------- TITLE ----------------
+# ---------------- IMAGE PREPROCESS ----------------
 
-st.markdown(
-    """
-    <h1 style='text-align: center;'>
-    🍅 Tomato Leaf Disease Detection
-    </h1>
-    """,
-    unsafe_allow_html=True
-)
+IMG_SIZE = 224
 
-# ---------------- IMAGE UPLOAD ----------------
+def preprocess_image(image):
+    image = image.resize((IMG_SIZE, IMG_SIZE))
+    image = np.array(image)
+    image = image / 255.0
+    image = np.expand_dims(image, axis=0)
+    return image
+
+# ---------------- FILE UPLOAD ----------------
 
 uploaded_file = st.file_uploader(
-    "",
+    "Upload Tomato Leaf Image",
     type=["jpg", "jpeg", "png"]
 )
 
@@ -57,29 +66,14 @@ if uploaded_file is not None:
         use_container_width=True
     )
 
-    # Resize image
-    image = image.resize((224, 224))
+    processed_image = preprocess_image(image)
 
-    # Convert to array
-    img_array = np.array(image)
-
-    # Normalize
-    img_array = img_array / 255.0
-
-    # Expand dimensions
-    img_array = np.expand_dims(img_array, axis=0)
-
-    # Prediction
-    prediction = model.predict(img_array)
+    prediction = model.predict(processed_image)
 
     predicted_class = class_names[np.argmax(prediction)]
 
     confidence = np.max(prediction) * 100
 
-    # ---------------- RESULT ----------------
-
-    st.markdown("## Prediction")
-
-    st.success(f"{predicted_class}")
+    st.success(f"Prediction: {predicted_class}")
 
     st.info(f"Confidence: {confidence:.2f}%")
