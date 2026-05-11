@@ -1,5 +1,6 @@
 import streamlit as st
 import tensorflow as tf
+from tensorflow import keras
 import numpy as np
 from PIL import Image
 from tensorflow.keras.applications.efficientnet import preprocess_input
@@ -21,8 +22,7 @@ CLASS_URL = "https://drive.google.com/uc?id=1w5zDqF4D6cgdkQnkalcYXRQwdI2JZNDk"
 
 # Download model
 if not os.path.exists("best_model.keras"):
-    with st.spinner("Downloading model..."):
-        gdown.download(MODEL_URL, "best_model.keras", quiet=False)
+    gdown.download(MODEL_URL, "best_model.keras", quiet=False)
 
 # Download class names
 if not os.path.exists("class_names.txt"):
@@ -31,19 +31,19 @@ if not os.path.exists("class_names.txt"):
 # ---------------- LOAD MODEL ----------------
 
 @st.cache_resource
-def load_model():
-    model = tf.keras.models.load_model(
+def load_my_model():
+    model = keras.models.load_model(
         "best_model.keras",
         compile=False
     )
     return model
 
-model = load_model()
+model = load_my_model()
 
 # ---------------- LOAD CLASS NAMES ----------------
 
 with open("class_names.txt") as f:
-    class_names = [line.strip() for line in f.readlines()]
+    class_names = [line.strip() for line in f]
 
 # ---------------- UI ----------------
 
@@ -67,40 +67,41 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
-    image = Image.open(uploaded_file).convert("RGB")
+    try:
 
-    st.image(
-        image,
-        caption="Uploaded Image",
-        use_container_width=True
-    )
+        # Open image
+        image = Image.open(uploaded_file).convert("RGB")
 
-    # Resize image
-    image = image.resize((224, 224))
+        # Show image
+        st.image(image, caption="Uploaded Image", width=300)
 
-    # Convert image to array
-    img_array = np.array(image)
+        # Resize image
+        image = image.resize((224, 224))
 
-    # Add batch dimension
-    img_array = np.expand_dims(img_array, axis=0)
+        # Convert to array
+        img_array = np.array(image)
 
-    # Preprocess image
-    img_array = preprocess_input(img_array)
+        # Add batch dimension
+        img_array = np.expand_dims(img_array, axis=0)
 
-    # Prediction
-    predictions = model.predict(img_array)
+        # Preprocess
+        img_array = preprocess_input(img_array)
 
-    # Get highest prediction
-    pred_index = np.argmax(predictions[0])
+        # Prediction
+        preds = model.predict(img_array)
 
-    # Prediction label
-    prediction = class_names[pred_index]
+        # Get highest prediction
+        pred_index = np.argmax(preds[0])
 
-    # Confidence
-    confidence = float(np.max(predictions[0])) * 100
+        # Prediction label
+        prediction = class_names[pred_index]
 
-    # ---------------- RESULTS ----------------
+        # Confidence
+        confidence = float(np.max(preds[0])) * 100
 
-    st.success(f"Prediction: {prediction}")
+        # Result
+        st.success(f"Prediction: {prediction}")
+        st.info(f"Confidence: {confidence:.2f}%")
 
-    st.info(f"Confidence: {confidence:.2f}%")
+    except Exception as e:
+        st.error(f"Error: {e}")
