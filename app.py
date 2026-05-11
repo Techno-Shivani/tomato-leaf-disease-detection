@@ -15,23 +15,21 @@ model = load_model()
 with open("class_names.txt", "r") as f:
     class_names = [line.strip() for line in f.readlines()]
 
-# Page title
+# Title
 st.title("🍅 Tomato Leaf Disease Detection")
 
-st.write("Upload a tomato leaf image to detect possible diseases using Deep Learning.")
+st.write("Upload a tomato leaf image to detect disease.")
 
-# File uploader
+# Upload image
 uploaded_file = st.file_uploader(
-    "Choose a tomato leaf image...",
+    "Choose an image",
     type=["jpg", "jpeg", "png"]
 )
 
 if uploaded_file is not None:
 
-    # Open image
     image = Image.open(uploaded_file).convert("RGB")
 
-    # Show image
     st.image(
         image,
         caption="Uploaded Image",
