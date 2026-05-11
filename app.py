@@ -2,77 +2,62 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-from tensorflow.keras.applications.efficientnet import preprocess_input
 
-# ---------------- PAGE CONFIG ----------------
-
-st.set_page_config(
-    page_title="Tomato Leaf Disease Detection",
-    page_icon="🍅",
-    layout="centered"
-)
-
-# ---------------- LOAD MODEL ----------------
-
+# Load model
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model(
-        "best_model.h5",
-        compile=False
-    )
+    model = tf.keras.models.load_model("best_model.keras")
     return model
 
 model = load_model()
 
-# ---------------- LOAD CLASS NAMES ----------------
+# Load class names
+with open("class_names.txt", "r") as f:
+    class_names = [line.strip() for line in f.readlines()]
 
-with open("class_names.txt") as f:
-    class_names = [line.strip() for line in f]
-
-# ---------------- UI ----------------
-
-st.markdown(
-    """
-    <h1 style='text-align:center; color:green;'>
-    🍅 Tomato Leaf Disease Detection
-    </h1>
-    """,
-    unsafe_allow_html=True
-)
+# Page title
+st.title("🍅 Tomato Leaf Disease Detection")
 
 st.write("Upload a tomato leaf image to detect possible diseases using Deep Learning.")
 
-# ---------------- FILE UPLOAD ----------------
-
+# File uploader
 uploaded_file = st.file_uploader(
-    "Upload Tomato Leaf Image",
+    "Choose a tomato leaf image...",
     type=["jpg", "jpeg", "png"]
 )
 
-# ---------------- PREDICTION ----------------
-
 if uploaded_file is not None:
 
+    # Open image
     image = Image.open(uploaded_file).convert("RGB")
 
-    st.image(image, caption="Uploaded Image", use_container_width=True)
+    # Show image
+    st.image(
+        image,
+        caption="Uploaded Image",
+        use_container_width=True
+    )
 
-    image = image.resize((224, 224))
+    # Resize image
+    img = image.resize((224, 224))
 
-    img_array = np.array(image)
+    # Convert to array
+    img_array = np.array(img)
 
+    # Normalize
+    img_array = img_array / 255.0
+
+    # Expand dimensions
     img_array = np.expand_dims(img_array, axis=0)
 
-    img_array = preprocess_input(img_array)
+    # Prediction
+    prediction = model.predict(img_array)
 
-    preds = model.predict(img_array)[0]
+    predicted_class = class_names[np.argmax(prediction)]
 
-    pred_index = np.argmax(preds)
+    confidence = np.max(prediction) * 100
 
-    prediction = class_names[pred_index]
-
-    confidence = preds[pred_index] * 100
-
-    st.success(f"Prediction: {prediction}")
+    # Result
+    st.success(f"Prediction: {predicted_class}")
 
     st.info(f"Confidence: {confidence:.2f}%")
