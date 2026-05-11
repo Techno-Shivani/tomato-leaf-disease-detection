@@ -1,5 +1,6 @@
 import streamlit as st
 import tensorflow as tf
+import keras
 import numpy as np
 from PIL import Image
 from tensorflow.keras.applications.efficientnet import preprocess_input
@@ -21,9 +22,10 @@ if not os.path.exists("class_names.txt"):
 
 # ---------------- LOAD MODEL ----------------
 
-model = tf.keras.models.load_model("best_model.keras", compile=False)
+model = keras.models.load_model("best_model.keras", compile=False)
 
-# Load class names
+# ---------------- LOAD CLASS NAMES ----------------
+
 with open("class_names.txt") as f:
     class_names = [line.strip() for line in f]
 
@@ -48,7 +50,8 @@ st.markdown(
 
 st.write("Upload a tomato leaf image to detect possible diseases using Deep Learning.")
 
-# Upload image
+# ---------------- IMAGE UPLOAD ----------------
+
 uploaded_file = st.file_uploader(
     "Upload Tomato Leaf Image",
     type=["jpg", "jpeg", "png"]
@@ -63,13 +66,13 @@ if uploaded_file is not None:
     # Resize image
     image = image.resize((224, 224))
 
-    # Convert to array
+    # Convert to numpy array
     img_array = np.array(image)
 
-    # Add batch dimension
+    # Expand dimensions
     img_array = np.expand_dims(img_array, axis=0)
 
-    # Preprocess
+    # Preprocess image
     img_array = preprocess_input(img_array)
 
     # Prediction
@@ -85,7 +88,7 @@ if uploaded_file is not None:
     # Prediction label
     prediction = class_names[pred_index]
 
-    # Confidence
+    # Confidence score
     confidence = preds[pred_index] * 100
 
     st.success(f"Prediction: {prediction}")
