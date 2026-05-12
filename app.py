@@ -2,19 +2,11 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-import gdown
 import os
 
 st.set_page_config(page_title="Tomato Leaf Disease Detection")
 
-# Google Drive Model Link
-MODEL_URL = "https://drive.google.com/uc?id=1pflxySlxBXUmLVOorwLU93MzJVHM16ub"
-
 MODEL_PATH = "best_model.keras"
-
-# Download model automatically
-if not os.path.exists(MODEL_PATH):
-    gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
 
 # Load model
 @st.cache_resource
@@ -33,7 +25,6 @@ st.title("🍅 Tomato Leaf Disease Detection")
 
 st.write("Upload a tomato leaf image to detect disease.")
 
-# Upload image
 uploaded_file = st.file_uploader(
     "Choose an image",
     type=["jpg", "jpeg", "png"]
