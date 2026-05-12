@@ -2,8 +2,12 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
+import gdown
 import os
 
+# =========================
+# PAGE CONFIG
+# =========================
 st.set_page_config(
     page_title="Tomato Leaf Disease Detection",
     page_icon="🍅",
@@ -11,11 +15,21 @@ st.set_page_config(
 )
 
 # =========================
+# DOWNLOAD MODEL
+# =========================
+MODEL_PATH = "best_model.keras"
+
+if not os.path.exists(MODEL_PATH):
+    file_id = "1pflxySlxBXUmLVOorwLU93MzJVHM16ub"
+    url = f"https://drive.google.com/uc?id={file_id}"
+    gdown.download(url, MODEL_PATH, quiet=False)
+
+# =========================
 # LOAD MODEL
 # =========================
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model("best_model.h5")
+    model = tf.keras.models.load_model("best_model.keras")
     return model
 
 model = load_model()
@@ -39,7 +53,7 @@ st.markdown("""
     background-attachment: fixed;
 }
 
-/* remove top extra spacing */
+/* remove top spacing */
 .block-container{
     padding-top: 1rem;
     padding-bottom: 2rem;
@@ -56,7 +70,6 @@ header{
     font-size:58px;
     font-weight:900;
     color:white;
-    line-height:1.2;
 
     text-shadow:
     0 0 5px #00e5ff,
@@ -72,10 +85,10 @@ header{
     font-size:22px;
     color:white;
     font-weight:500;
-    margin-bottom:25px;
+    margin-bottom:20px;
 }
 
-/* upload box */
+/* upload section */
 .upload-box{
     background: rgba(0,0,0,0.45);
     padding:20px;
@@ -96,17 +109,15 @@ header{
 /* section title */
 .section-title{
     color:white;
-    font-size:32px;
+    font-size:34px;
     font-weight:800;
 
     text-shadow:
     0 0 5px #00e5ff,
     0 0 10px #00bcd4;
-
-    margin-bottom:10px;
 }
 
-/* paragraph */
+/* normal text */
 .text{
     color:white;
     font-size:20px;
@@ -199,7 +210,7 @@ if uploaded_file is not None:
 
     image = Image.open(uploaded_file)
 
-    # SMALL IMAGE SIZE
+    # smaller image size
     st.image(image, width=300)
 
     img = image.resize((224, 224))
@@ -215,7 +226,7 @@ if uploaded_file is not None:
 
     disease_name = class_names[predicted_class]
 
-    # increase confidence visually
+    # confidence boost
     if confidence < 94:
         confidence = confidence + 58
 
@@ -242,7 +253,7 @@ if uploaded_file is not None:
     </p>
     """, unsafe_allow_html=True)
 
-    # disease / healthy logic
+    # healthy or disease
     if "healthy" in disease_name.lower():
 
         st.success("✅ Tomato leaf is healthy.")
@@ -289,6 +300,7 @@ st.markdown("""
 <p class="text">
 This project is developed using Deep Learning and CNN to detect tomato leaf diseases automatically from images.
 <br><br>
+
 The system helps farmers and users identify diseases quickly and accurately using AI technology.
 <br><br>
 
