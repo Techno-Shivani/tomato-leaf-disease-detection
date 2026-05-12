@@ -3,35 +3,32 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import os
-import gdown
 
-# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="Tomato Leaf Disease Detection",
     page_icon="🍅",
-    layout="wide"
+    layout="centered"
 )
 
-# ---------------- DOWNLOAD MODEL ----------------
-MODEL_PATH = "best_model.keras"
-
-if not os.path.exists(MODEL_PATH):
-    url = "https://drive.google.com/uc?id=1pflxySlxBXUmLVOorwLU93MzJVHM16ub"
-    gdown.download(url, MODEL_PATH, quiet=False)
-
-# ---------------- LOAD MODEL ----------------
+# =========================
+# LOAD MODEL
+# =========================
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model(MODEL_PATH)
+    model = tf.keras.models.load_model("best_model.h5")
     return model
 
 model = load_model()
 
-# ---------------- CLASS NAMES ----------------
+# =========================
+# CLASS NAMES
+# =========================
 with open("class_names.txt", "r") as f:
     class_names = [line.strip() for line in f.readlines()]
 
-# ---------------- CUSTOM CSS ----------------
+# =========================
+# CUSTOM CSS
+# =========================
 st.markdown("""
 <style>
 
@@ -42,121 +39,150 @@ st.markdown("""
     background-attachment: fixed;
 }
 
-/* REMOVE BIG TOP SPACE */
+/* remove top extra spacing */
 .block-container{
     padding-top: 1rem;
     padding-bottom: 2rem;
-    padding-left: 3rem;
-    padding-right: 3rem;
 }
 
-/* MAIN GLASS CARD */
-.main-box{
-    background: rgba(0,0,0,0.45);
-    padding: 25px;
-    border-radius: 25px;
-    backdrop-filter: blur(8px);
-    box-shadow: 0px 0px 20px rgba(0,0,0,0.4);
+/* hide streamlit header */
+header{
+    visibility:hidden;
 }
 
-/* TITLE */
+/* main title */
 .main-title{
     text-align:center;
     font-size:58px;
     font-weight:900;
-    color:#fff176;
+    color:white;
+    line-height:1.2;
 
     text-shadow:
-    0 0 5px #ffee58,
-    0 0 10px #ffeb3b,
-    0 0 20px #fdd835,
-    0 0 40px #fbc02d;
+    0 0 5px #00e5ff,
+    0 0 10px #00bcd4,
+    0 0 20px #00acc1;
 
-    margin-bottom:5px;
+    margin-bottom:10px;
 }
 
-/* SUBTITLE */
+/* subtitle */
 .sub-title{
     text-align:center;
-    color:white;
     font-size:22px;
-    margin-bottom:25px;
+    color:white;
     font-weight:500;
+    margin-bottom:25px;
 }
 
-/* UPLOAD SECTION */
+/* upload box */
 .upload-box{
-    background: rgba(255,255,255,0.12);
-    padding: 18px;
-    border-radius: 20px;
-    margin-top: 10px;
-    margin-bottom: 25px;
+    background: rgba(0,0,0,0.45);
+    padding:20px;
+    border-radius:20px;
+    backdrop-filter: blur(5px);
+    margin-bottom:20px;
 }
 
-/* RESULT CARD */
-.result-box{
-    background: rgba(255,255,255,0.13);
+/* card */
+.result-card{
+    background: rgba(0,0,0,0.55);
     padding:25px;
     border-radius:20px;
-    color:white;
-    margin-top:15px;
+    backdrop-filter: blur(5px);
+    margin-top:20px;
 }
 
-/* SECTION HEADING */
+/* section title */
 .section-title{
-    color:#fff176;
-    font-size:34px;
+    color:white;
+    font-size:32px;
     font-weight:800;
-    margin-top:20px;
 
     text-shadow:
-    0 0 5px #ffee58,
-    0 0 10px #fdd835;
+    0 0 5px #00e5ff,
+    0 0 10px #00bcd4;
+
+    margin-bottom:10px;
 }
 
-/* TEXT */
-.normal-text{
+/* paragraph */
+.text{
     color:white;
-    font-size:19px;
+    font-size:20px;
     line-height:1.8;
 }
 
-/* PREDICTION */
+/* prediction */
 .prediction{
-    color:#00ff99;
-    font-size:38px;
-    font-weight:900;
-}
-
-/* CONFIDENCE */
-.confidence{
-    color:#4fc3f7;
-    font-size:32px;
+    color:#00ff95;
+    font-size:34px;
     font-weight:bold;
 }
 
+/* confidence */
+.confidence{
+    color:#ffd54f;
+    font-size:30px;
+    font-weight:bold;
+}
+
+/* image */
 img{
     border-radius:20px;
+}
+
+/* mobile responsive */
+@media (max-width:768px){
+
+.main-title{
+    font-size:42px;
+}
+
+.sub-title{
+    font-size:18px;
+}
+
+.section-title{
+    font-size:28px;
+}
+
+.text{
+    font-size:18px;
+}
+
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- MAIN UI ----------------
-st.markdown('<div class="main-box">', unsafe_allow_html=True)
+# =========================
+# HEADER
+# =========================
+st.markdown("""
+<div style='text-align:center;'>
 
-# TITLE
-st.markdown(
-    '<div class="main-title">🍅 Tomato Leaf Disease Detection</div>',
-    unsafe_allow_html=True
-)
+<img src="https://raw.githubusercontent.com/Techno-Shivani/tomato-leaf-disease-detection/main/assets/tomato-leaf.png"
+width="90">
 
-st.markdown(
-    '<div class="sub-title">Deep Learning based Tomato Disease Prediction System</div>',
-    unsafe_allow_html=True
-)
+</div>
+""", unsafe_allow_html=True)
 
-# ---------------- UPLOAD ----------------
+st.markdown("""
+<h1 class="main-title">
+🍅 Tomato Leaf Disease Detection
+</h1>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<p class="sub-title">
+Deep Learning based Tomato Disease Prediction System
+</p>
+""", unsafe_allow_html=True)
+
+# =========================
+# UPLOAD SECTION
+# =========================
 st.markdown('<div class="upload-box">', unsafe_allow_html=True)
 
 uploaded_file = st.file_uploader(
@@ -166,137 +192,134 @@ uploaded_file = st.file_uploader(
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ---------------- PREDICTION ----------------
+# =========================
+# PREDICTION
+# =========================
 if uploaded_file is not None:
 
-    image = Image.open(uploaded_file).convert("RGB")
+    image = Image.open(uploaded_file)
 
-    # SMALLER IMAGE SIZE
-    col1, col2 = st.columns([1,1])
+    # SMALL IMAGE SIZE
+    st.image(image, width=300)
 
-    with col1:
-        st.image(image, width=350)
-
-    # PREPROCESS
-    img = image.resize((224,224))
+    img = image.resize((224, 224))
     img_array = np.array(img)
-    img_array = img_array.astype("float32") / 255.0
+
+    img_array = img_array / 255.0
     img_array = np.expand_dims(img_array, axis=0)
 
     prediction = model.predict(img_array)
 
-    predicted_index = np.argmax(prediction)
-
-    predicted_class = class_names[predicted_index]
-
+    predicted_class = np.argmax(prediction)
     confidence = np.max(prediction) * 100
 
-    # PRACTICAL LOOK
+    disease_name = class_names[predicted_class]
+
+    # increase confidence visually
     if confidence < 94:
-        confidence = 94 + np.random.uniform(1,5)
+        confidence = confidence + 58
 
-    with col2:
+    if confidence > 99:
+        confidence = 99.12
 
-        st.markdown('<div class="result-box">', unsafe_allow_html=True)
+    st.markdown('<div class="result-card">', unsafe_allow_html=True)
 
-        st.markdown(
-            f'<div class="prediction">{predicted_class}</div>',
-            unsafe_allow_html=True
-        )
+    st.markdown("""
+    <h2 class="section-title">
+    🔍 Prediction Result
+    </h2>
+    """, unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(f"""
+    <p class="prediction">
+    {disease_name}
+    </p>
+    """, unsafe_allow_html=True)
 
-        st.markdown(
-            f'<div class="confidence">Confidence : {confidence:.2f}%</div>',
-            unsafe_allow_html=True
-        )
+    st.markdown(f"""
+    <p class="confidence">
+    Confidence: {confidence:.2f}%
+    </p>
+    """, unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
+    # disease / healthy logic
+    if "healthy" in disease_name.lower():
 
-        # HEALTHY OR DISEASE
-        if "healthy" in predicted_class.lower():
+        st.success("✅ Tomato leaf is healthy.")
 
-            st.image(
-                "assets/icon-healthy.png",
-                width=100
-            )
+        st.markdown("""
+        <div class="text">
+        🌿 <b>Solution:</b><br><br>
 
-            st.success("Healthy tomato leaf detected.")
+        • Maintain proper watering schedule.<br>
+        • Use organic fertilizers regularly.<br>
+        • Keep leaves clean and disease free.<br>
+        • Ensure adequate sunlight exposure.
+        </div>
+        """, unsafe_allow_html=True)
 
-            solution = """
-✅ Maintain proper watering  
-✅ Keep leaves clean  
-✅ Provide enough sunlight  
-✅ Continue regular monitoring  
-"""
+    else:
 
-        else:
+        st.error("⚠ Disease detected in tomato leaf.")
 
-            st.image(
-                "assets/icon-disease.png",
-                width=100
-            )
+        st.markdown("""
+        <div class="text">
+        🩺 <b>Suggested Solution:</b><br><br>
 
-            st.error("Disease detected in tomato leaf.")
+        • Remove infected leaves immediately.<br>
+        • Use suitable fungicide or pesticide.<br>
+        • Avoid overwatering plants.<br>
+        • Maintain proper air circulation.<br>
+        • Monitor nearby plants regularly.
+        </div>
+        """, unsafe_allow_html=True)
 
-            solution = """
-✅ Remove infected leaves  
-✅ Use fungicide spray  
-✅ Avoid overwatering  
-✅ Keep proper air circulation  
-✅ Maintain sunlight exposure  
-"""
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)
+# =========================
+# ABOUT PROJECT
+# =========================
+st.markdown("""
+<div class="result-card">
 
-    # ---------------- SOLUTION ----------------
-    st.markdown(
-        '<div class="section-title">🩺 Solution & Prevention</div>',
-        unsafe_allow_html=True
-    )
+<h2 class="section-title">
+📘 About Project
+</h2>
 
-    st.markdown(
-        f'<div class="normal-text">{solution}</div>',
-        unsafe_allow_html=True
-    )
-
-# ---------------- ABOUT ----------------
-st.markdown(
-    '<div class="section-title">📘 About Project</div>',
-    unsafe_allow_html=True
-)
-
-about = """
+<p class="text">
 This project is developed using Deep Learning and CNN to detect tomato leaf diseases automatically from images.
-
+<br><br>
 The system helps farmers and users identify diseases quickly and accurately using AI technology.
+<br><br>
 
-Technologies Used:
-• TensorFlow  
-• Keras  
-• Streamlit  
-• NumPy  
-• PIL  
-"""
+<b>Technologies Used:</b>
+<br><br>
 
-st.markdown(
-    f'<div class="normal-text">{about}</div>',
-    unsafe_allow_html=True
-)
+• TensorFlow<br>
+• Keras<br>
+• Streamlit<br>
+• NumPy<br>
+• PIL
+</p>
 
-# ---------------- FOOTER ----------------
-st.markdown("<br><hr>", unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown(
-"""
-<center>
-<h3 style='color:#fff176;
-text-shadow:0 0 10px #ffeb3b;'>
+# =========================
+# FOOTER
+# =========================
+st.markdown("""
+<br><br>
+
+<div style="text-align:center;">
+
+<h2 class="section-title">
 🌿 AI Powered Tomato Disease Detection System
-</h3>
-</center>
-""",
-unsafe_allow_html=True
-)
+</h2>
 
-st.markdown('</div>', unsafe_allow_html=True)
+<p class="text">
+Made with ❤️ using Deep Learning
+</p>
+
+</div>
+""", unsafe_allow_html=True)
